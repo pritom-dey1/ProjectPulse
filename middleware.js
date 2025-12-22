@@ -1,61 +1,70 @@
-import { NextResponse } from "next/server"
-import { jwtVerify } from "jose"
+import { NextResponse } from "next/server";
+import { jwtVerify } from "jose";
 
-const SECRET = new TextEncoder().encode(process.env.JWT_SECRET)
+const SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
 
 async function getUserFromToken(token) {
   try {
-    const { payload } = await jwtVerify(token, SECRET)
-    return payload
+    const { payload } = await jwtVerify(token, SECRET);
+    return payload;
   } catch {
-    return null
+    return null;
   }
 }
 
 export default async function middleware(req) {
-  const { pathname } = req.nextUrl
+  const { pathname } = req.nextUrl;
 
-  const token = req.cookies.get("token")?.value
-  const user = token ? await getUserFromToken(token) : null
-
-  // =====================
-  // PUBLIC ROUTES
-  // =====================
-  if (pathname === "/" || pathname.startsWith("/login")) {
-    return NextResponse.next()
-  }
+  const token = req.cookies.get("token")?.value;
+  const user = token ? await getUserFromToken(token) : null;
 
   // =====================
   // NOT LOGGED IN
   // =====================
   if (!user) {
-    return NextResponse.redirect(new URL("/login", req.url))
+    if (pathname.startsWith("/login")) {
+      return NextResponse.next();
+    }
+
+    return NextResponse.redirect(new URL("/login", req.url));
   }
 
   // =====================
-  // ROLE PROTECTION
+  // LOGGED IN
   // =====================
-  if (pathname.startsWith("/admin") && user.role !== "ADMIN") {
-    return NextResponse.redirect(new URL("/", req.url))
+  if (pathname === "/") {
+    if (user.role === "ADMIN") {
+      return NextResponse.redirect(new URL("/admin", req.url));
+    }
+    if (user.role === "EMPLOYEE") {
+      return NextResponse.redirect(new URL("/employee", req.url));
+    }
+    if (user.role === "CLIENT") {
+      return NextResponse.redirect(new URL("/client", req.url));
+    }
   }
 
-  if (pathname.startsWith("/employee") && user.role !== "EMPLOYEE") {
-    return NextResponse.redirect(new URL("/", req.url))
+  if (pathname.startsWith("/login")) {
+    if (user.role === "ADMIN") {
+      return NextResponse.redirect(new URL("/admin", req.url));
+    }
+    if (user.role === "EMPLOYEE") {
+      return NextResponse.redirect(new URL("/employee", req.url));
+    }
+    if (user.role === "CLIENT") {
+      return NextResponse.redirect(new URL("/client", req.url));
+    }
   }
 
-  if (pathname.startsWith("/client") && user.role !== "CLIENT") {
-    return NextResponse.redirect(new URL("/", req.url))
-  }
-
-  return NextResponse.next()
+  return NextResponse.next();
 }
 
 export const config = {
   matcher: [
+    "/",
+    "/login",
     "/admin/:path*",
     "/employee/:path*",
     "/client/:path*",
-    "/login",
-    "/"
   ],
-}
+};
