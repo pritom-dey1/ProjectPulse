@@ -14,7 +14,6 @@ export default function AdminLayout({ children }) {
     <div>
       <nav className="bg-black text-white p-4 flex justify-between">
         <span>ProjectPulse Admin</span>
-        <button onClick={logout}>Logout</button>
       </nav>
 
       <main className="p-6">{children}</main>
