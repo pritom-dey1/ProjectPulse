@@ -1,18 +1,18 @@
+// app/client/layout.jsx
 "use client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { FiGrid, FiFolder, FiAlertTriangle, FiClock, FiLogOut } from "react-icons/fi";
+import { FiGrid, FiFolder, FiMessageSquare, FiLogOut } from "react-icons/fi";
 import api from "@/lib/axios";
 
-export default function EmployeeLayout({ children }) {
+export default function ClientLayout({ children }) {
   const pathname = usePathname();
   const router = useRouter();
 
   const menu = [
-    { name: "Dashboard", path: "/employee", icon: <FiGrid /> },
-    { name: "My Projects", path: "/employee/projects", icon: <FiFolder /> },
-    { name: "Submit Check-in", path: "/employee/check-ins/create", icon: <FiClock /> },
-    { name: "My Risks", path: "/employee/risks", icon: <FiAlertTriangle /> },
+    { name: "Dashboard", path: "/client", icon: <FiGrid /> },
+    { name: "My Projects", path: "/client/projects", icon: <FiFolder /> },
+    { name: "Submit Feedback", path: "/client/feedback/create", icon: <FiMessageSquare /> },
   ];
 
   const logout = async () => {
