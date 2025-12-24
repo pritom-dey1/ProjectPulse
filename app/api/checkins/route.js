@@ -1,49 +1,52 @@
-import { connectDB } from '@/lib/db'
-import EmployeeCheckIn from '@/models/EmployeeCheckIn'
-import User from '@/models/User'
-import Project from '@/models/Project'
-import { getAuthUser } from '@/lib/auth'
-import { allowRoles } from '@/lib/rbac'
-import { recalculateHealth } from '@/lib/recalculateHealth'
-import { NextResponse } from 'next/server'
-
+import { connectDB } from "@/lib/db";
+import EmployeeCheckIn from "@/models/EmployeeCheckIn";
+import User from "@/models/User";
+import Project from "@/models/Project";
+import { getAuthUser } from "@/lib/auth";
+import { allowRoles } from "@/lib/rbac";
+import { recalculateHealth } from "@/lib/recalculateHealth";
+import { NextResponse } from "next/server";
+import MissingCheckIn from '@/models/MissingCheckIn'; 
 export async function POST(req) {
   try {
-    const user = await getAuthUser()
+    const user = await getAuthUser();
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    allowRoles(user, ['EMPLOYEE'])
+    allowRoles(user, ["EMPLOYEE"]);
 
-    await connectDB()
+    await connectDB();
 
-    const data = await req.json()
-    const { projectId, progressSummary, confidenceLevel } = data
+    const data = await req.json();
+    const { projectId, progressSummary, confidenceLevel } = data;
 
     if (!projectId || !progressSummary || confidenceLevel == null) {
       return NextResponse.json(
-        { error: 'Project ID, progress summary, and confidence level are required' },
+        {
+          error:
+            "Project ID, progress summary, and confidence level are required",
+        },
         { status: 400 }
-      )
+      );
     }
 
     // Start of week (7 days ago)
-    const weekStart = new Date()
-    weekStart.setDate(weekStart.getDate() - 7)
+    const weekStart = new Date();
+    weekStart.setDate(weekStart.getDate() - 7);
 
     // Check if weekly check-in already exists for this employee + project
     const exists = await EmployeeCheckIn.findOne({
       employeeId: user.userId,
       projectId,
-      createdAt: { $gte: weekStart }
-    })
+      createdAt: { $gte: weekStart },
+    });
 
     if (exists) {
       return NextResponse.json(
-        { error: 'Weekly check-in already submitted for this week' },
+        { error: "Weekly check-in already submitted for this week" },
         { status: 400 }
-      )
+      );
     }
 
     // Create new check-in
@@ -52,74 +55,93 @@ export async function POST(req) {
       progressSummary,
       confidenceLevel,
       employeeId: user.userId,
-      createdAt: new Date()
-    })
+      createdAt: new Date(),
+    });
 
     // Recalculate health score
-    await recalculateHealth(projectId)
+    await recalculateHealth(projectId);
 
-    return NextResponse.json(checkin, { status: 201 })
-
+    return NextResponse.json(checkin, { status: 201 });
   } catch (err) {
-    console.error('Error creating check-in:', err)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error("Error creating check-in:", err);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }
 
 export async function GET() {
   try {
-    const user = await getAuthUser()
+    const user = await getAuthUser();
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    allowRoles(user, ['ADMIN'])
+    allowRoles(user, ["ADMIN"]);
 
-    await connectDB()
+    await connectDB();
 
-    const weekStart = new Date()
-    weekStart.setDate(weekStart.getDate() - 7)
+    const weekStart = new Date();
+    weekStart.setDate(weekStart.getDate() - 7);
 
     // Fetch all employees and projects
-    const employees = await User.find({ role: 'EMPLOYEE' }).lean()
-    const projects = await Project.find().lean()
+    const employees = await User.find({ role: "EMPLOYEE" }).lean();
+    const projects = await Project.find().lean();
 
     // Fetch all check-ins for last week
     const recentCheckIns = await EmployeeCheckIn.find({
-      createdAt: { $gte: weekStart }
-    }).lean()
+      createdAt: { $gte: weekStart },
+    }).lean();
 
     // Build missing check-ins with unique tempId
-    const missing = []
+    const missing = [];
 
     for (const emp of employees) {
       for (const proj of projects) {
         const exists = recentCheckIns.find(
-          ci =>
+          (ci) =>
             ci.employeeId.toString() === emp._id.toString() &&
             ci.projectId.toString() === proj._id.toString()
-        )
+        );
 
-        if (!exists) {
-          const tempId = `${emp._id}-${proj._id}-${weekStart.toISOString()}` // unique key
+       if (!exists) {
+  // প্রথমে চেক করো এই missing entry ইতিমধ্যে আছে কি না
+  let missingEntry = await MissingCheckIn.findOne({
+    employeeId: emp._id,
+    projectId: proj._id,
+    weekStart
+  });
 
-          missing.push({
-            tempId,  
-            employeeId: emp._id,
-            employeeName: emp.name,
-            projectId: proj._id,
-            projectName: proj.name,
-            weekStart,
-            resolved: false
-          })
-        }
+  if (!missingEntry) {
+    // শুধু প্রথমবার তৈরি করো
+    missingEntry = await MissingCheckIn.create({
+      employeeId: emp._id,
+      projectId: proj._id,
+      weekStart,
+      resolved: false
+    });
+  }
+
+  missing.push({
+    _id: missingEntry._id.toString(),  // আসল _id
+    employeeId: emp._id,
+    employeeName: emp.name,
+    projectId: proj._id,
+    projectName: proj.name,
+    weekStart,
+    resolved: missingEntry.resolved  // DB থেকে আসা resolved স্ট্যাটাস
+  });
+}
       }
     }
 
-    return NextResponse.json(missing)
-
+    return NextResponse.json(missing);
   } catch (err) {
-    console.error('Error fetching missing check-ins:', err)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error("Error fetching missing check-ins:", err);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }

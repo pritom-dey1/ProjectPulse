@@ -5,18 +5,38 @@ import { allowRoles } from '@/lib/rbac'
 import { recalculateHealth } from '@/lib/recalculateHealth'
 import { NextResponse } from 'next/server'
 
-export async function PATCH(req, { params }) {
-  const user = getAuthUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  allowRoles(user, ['ADMIN'])
+export async function PATCH(req, context) {  // context নামটা রাখো
+  try {
+    const user = await getAuthUser(req);
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    allowRoles(user, ['ADMIN']);
 
-  await connectDB()
+    await connectDB();
 
-  const risk = await Risk.findById(params.id)
-  risk.status = 'RESOLVED'
-  await risk.save()
+    // এখানে context.params await করো
+    const params = await context.params;  // ← এটা অবশ্যই await করো
+    const { id } = params;
 
-  await recalculateHealth(risk.projectId)
+    if (!id) {
+      return NextResponse.json({ error: 'Risk ID is required' }, { status: 400 });
+    }
 
-  return NextResponse.json(risk)
+    const risk = await Risk.findById(id);
+
+    if (!risk) {
+      return NextResponse.json({ error: 'Risk not found' }, { status: 404 });
+    }
+
+    risk.status = 'RESOLVED';
+    await risk.save();
+
+    if (risk.projectId) {
+      await recalculateHealth(risk.projectId);
+    }
+
+    return NextResponse.json(risk);
+  } catch (err) {
+    console.error('Risk resolve error:', err);
+    return NextResponse.json({ error: err.message || 'Server error' }, { status: 500 });
+  }
 }

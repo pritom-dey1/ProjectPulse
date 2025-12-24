@@ -1,26 +1,61 @@
 // models/Project.js
 import mongoose from 'mongoose';
 
-const projectSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  description: { type: String },
-  startDate: { type: Date, required: true },
-  endDate: { type: Date, required: true },
-  clientId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  employeeIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-  healthScore: { type: Number, default: 100, min: 0, max: 100 },
-  status: { 
-    type: String, 
-    enum: ['ON_TRACK', 'AT_RISK', 'CRITICAL', 'COMPLETED'], 
-    default: 'ON_TRACK' 
+const projectSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: [true, 'Project name is required'],
+      trim: true,
+      minlength: [3, 'Name must be at least 3 characters'],
+    },
+    description: {
+      type: String,
+      trim: true,
+      maxlength: [1000, 'Description cannot exceed 1000 characters'],
+    },
+    startDate: {
+      type: Date,
+      required: [true, 'Start date is required'],
+    },
+    endDate: {
+      type: Date,
+      required: [true, 'End date is required'],
+      validate: {
+        validator: function (value) {
+          return value > this.startDate;
+        },
+        message: 'End date must be after start date',
+      },
+    },
+    clientId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: [true, 'Client is required'],
+    },
+    employeeIds: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      },
+    ],
+    healthScore: {
+      type: Number,
+      default: 100,
+      min: [0, 'Health score cannot be below 0'],
+      max: [100, 'Health score cannot exceed 100'],
+    },
+    status: {
+      type: String,
+      enum: ['ON_TRACK', 'AT_RISK', 'CRITICAL', 'COMPLETED'],
+      default: 'ON_TRACK',
+    },
   },
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
-});
+  {
+    timestamps: true, 
+  }
+);
 
-projectSchema.pre('save', function(next) {
-  this.updatedAt = Date.now();
-  next();
-});
+const Project = mongoose.models.Project || mongoose.model('Project', projectSchema);
 
-export default mongoose.models.Project || mongoose.model('Project', projectSchema);
+export default Project;

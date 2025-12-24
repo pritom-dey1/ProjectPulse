@@ -13,8 +13,20 @@ export async function POST(req) {
 }
 
 export async function GET() {
-  const user = getAuthUser()
-  allowRoles(user, ['ADMIN'])
-  await connectDB()
-  return NextResponse.json(await Risk.find())
+  const user = await getAuthUser();  
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  await connectDB();
+
+  if (user.role === 'ADMIN') {
+    return NextResponse.json(await Risk.find().lean());
+  }
+
+  if (user.role === 'EMPLOYEE') {
+    return NextResponse.json(
+      await Risk.find({ createdBy: user.userId }).sort({ createdAt: -1 }).lean()
+    );
+  }
+
+  return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 }
