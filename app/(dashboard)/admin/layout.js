@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { FiGrid, FiFolder, FiAlertTriangle, FiClock, FiLogOut, FiPlus } from "react-icons/fi";
+import { FiGrid, FiFolder, FiAlertTriangle, FiClock, FiLogOut, FiPlus,FiUserPlus } from "react-icons/fi";
 import api from "@/lib/axios";
 
 export default function AdminLayout({ children }) {
@@ -14,6 +14,7 @@ export default function AdminLayout({ children }) {
     { name: "Create Project", path: "/admin/projects/create", icon: <FiPlus /> },
     { name: "Risks", path: "/admin/risks", icon: <FiAlertTriangle /> },
     { name: "Missing Check-ins", path: "/admin/missing-checkins", icon: <FiClock /> },
+    { name: "Create User", path: "/admin/users/create", icon: <FiUserPlus /> }
   ];
 
   const logout = async () => {

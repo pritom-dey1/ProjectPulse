@@ -34,7 +34,7 @@ export default function AdminProjectsPage() {
 
   return (
     <div className="p-6">
-      <h1 className="text-3xl font-bold mb-6 text-white">Projects</h1>
+      <h1 className="text-3xl text-center font-bold mb-6 text-white">Projects</h1>
 
       <div className="overflow-x-auto">
         <table className="min-w-full border-collapse text-left">
