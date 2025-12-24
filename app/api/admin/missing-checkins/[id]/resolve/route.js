@@ -4,10 +4,7 @@ import { connectDB } from '@/lib/db';
 import MissingCheckIn from '@/models/MissingCheckIn';
 import { getAuthUser, allowRoles } from '@/lib/auth';
 
-export async function PATCH(
-  req: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(req, { params }) {
   try {
     const user = await getAuthUser(req);
     if (!user) {
@@ -18,15 +15,15 @@ export async function PATCH(
 
     await connectDB();
 
-    // params এখন Promise, তাই await করতে হবে
-    const { id } = await params;
+    const resolvedParams = await params;
+    const { id } = resolvedParams;
 
     const updated = await MissingCheckIn.findByIdAndUpdate(
       id,
       {
         resolved: true,
         resolvedAt: new Date(),
-        resolvedBy: user.userId || user._id, // userId বা _id যেটা তোমার অথেন্টিকেশনে আছে
+        resolvedBy: user.userId || user._id,
       },
       { new: true }
     );
