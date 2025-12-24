@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import api from "@/lib/axios";
 import toast, { Toaster } from "react-hot-toast";
 
@@ -36,7 +37,7 @@ export default function MissingCheckInsPage() {
       <div className="grid gap-4">
         {checkIns.map((ci) => (
           <div
-            key={ci._id}
+            key={ci.tempId}  // ← এখানে ci.tempId ব্যবহার করো (API থেকে আসছে)
             className="bg-white/5 border border-white/20 rounded-xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center hover:shadow-lg transition"
           >
             <div className="mb-2 md:mb-0">
@@ -56,11 +57,11 @@ export default function MissingCheckInsPage() {
               disabled={ci.resolved}
               onClick={async () => {
                 try {
-                  await api.patch(`/api/admin/missing-checkings/${ci._id}/resolve`);
+                  await api.patch(`/api/admin/missing-checkings/${ci._id}/resolve`); // ← এখানে ci._id থাকলে রাখো, না থাকলে পরে ফিক্স করব
                   toast.success("Marked as resolved");
                   setCheckIns((prev) =>
                     prev.map((c) =>
-                      c._id === ci._id ? { ...c, resolved: true } : c
+                      c.tempId === ci.tempId ? { ...c, resolved: true } : c  // tempId দিয়ে ম্যাচ করো
                     )
                   );
                 } catch (err) {

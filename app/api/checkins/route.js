@@ -10,8 +10,9 @@ import { NextResponse } from 'next/server'
 export async function POST(req) {
   try {
     const user = await getAuthUser()
-    if (!user)
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
 
     allowRoles(user, ['EMPLOYEE'])
 
@@ -31,7 +32,7 @@ export async function POST(req) {
     const weekStart = new Date()
     weekStart.setDate(weekStart.getDate() - 7)
 
-    // Check if weekly check-in already exists
+    // Check if weekly check-in already exists for this employee + project
     const exists = await EmployeeCheckIn.findOne({
       employeeId: user.userId,
       projectId,
@@ -40,7 +41,7 @@ export async function POST(req) {
 
     if (exists) {
       return NextResponse.json(
-        { error: 'Weekly check-in already submitted' },
+        { error: 'Weekly check-in already submitted for this week' },
         { status: 400 }
       )
     }
@@ -54,6 +55,7 @@ export async function POST(req) {
       createdAt: new Date()
     })
 
+    // Recalculate health score
     await recalculateHealth(projectId)
 
     return NextResponse.json(checkin, { status: 201 })
@@ -67,9 +69,10 @@ export async function POST(req) {
 export async function GET() {
   try {
     const user = await getAuthUser()
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
 
-    // Only ADMIN can fetch missing check-ins
     allowRoles(user, ['ADMIN'])
 
     await connectDB()
@@ -86,7 +89,7 @@ export async function GET() {
       createdAt: { $gte: weekStart }
     }).lean()
 
-    // Build missing check-ins
+    // Build missing check-ins with unique tempId
     const missing = []
 
     for (const emp of employees) {
@@ -96,8 +99,12 @@ export async function GET() {
             ci.employeeId.toString() === emp._id.toString() &&
             ci.projectId.toString() === proj._id.toString()
         )
+
         if (!exists) {
+          const tempId = `${emp._id}-${proj._id}-${weekStart.toISOString()}` // unique key
+
           missing.push({
+            tempId,  
             employeeId: emp._id,
             employeeName: emp.name,
             projectId: proj._id,
