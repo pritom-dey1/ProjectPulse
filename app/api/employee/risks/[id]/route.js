@@ -1,5 +1,6 @@
 import { connectDB } from '@/lib/db';
 import Risk from '@/models/Risk';
+import Notification from '@/models/Notification';
 import { recalculateHealth } from '@/lib/recalculateHealth';
 import { getServerSession } from '@/lib/auth';
 
@@ -31,6 +32,17 @@ export async function PUT(request, { params }) {
 
   if (risk.projectId) {
     await recalculateHealth(risk.projectId);
+  }
+
+  if (status === 'Resolved') {
+    const notifications = [{
+      userId: session.user.userId,
+      message: `Your reported risk "${risk.title}" has been resolved`,
+      link: `/employee/risks/${params.id}`,
+      type: 'risk_resolved',
+      read: false
+    }];
+    await Notification.insertMany(notifications);
   }
 
   return Response.json({ risk: updatedRisk });

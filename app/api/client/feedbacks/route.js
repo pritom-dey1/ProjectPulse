@@ -1,6 +1,8 @@
 import { connectDB } from '@/lib/db';
 import ClientFeedback from '@/models/ClientFeedback';
 import Project from '@/models/Project';
+import User from '@/models/User';
+import Notification from '@/models/Notification';
 import { recalculateHealth } from '@/lib/recalculateHealth';
 import { getServerSession } from '@/lib/auth';
 
@@ -39,6 +41,18 @@ export async function POST(request) {
   });
 
   await recalculateHealth(projectId);
+
+  if (issueFlag) {
+    const admins = await User.find({ role: 'ADMIN' });
+    const notifications = admins.map(admin => ({
+      userId: admin._id,
+      message: `Client flagged issue in project: ${project.name}`,
+      link: `/admin/projects/${projectId}`,
+      type: 'client_flag',
+      read: false
+    }));
+    await Notification.insertMany(notifications);
+  }
 
   return Response.json({ feedback }, { status: 201 });
 }

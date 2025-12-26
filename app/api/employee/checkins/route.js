@@ -1,6 +1,8 @@
 import { connectDB } from '@/lib/db';
 import EmployeeCheckIn from '@/models/EmployeeCheckIn';
 import Project from '@/models/Project';
+import User from '@/models/User';
+import Notification from '@/models/Notification';
 import { recalculateHealth } from '@/lib/recalculateHealth';
 import { getServerSession } from '@/lib/auth';
 
@@ -39,6 +41,16 @@ export async function POST(request) {
   });
 
   await recalculateHealth(projectId);
+
+  const admins = await User.find({ role: 'ADMIN' });
+  const notifications = admins.map(admin => ({
+    userId: admin._id,
+    message: `Check-in submitted for project: ${project.name}`,
+    link: `/admin/missing-checkins`,
+    type: 'checkin_submit',
+    read: false
+  }));
+  await Notification.insertMany(notifications);
 
   return Response.json({ checkIn }, { status: 201 });
 }

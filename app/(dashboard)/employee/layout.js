@@ -1,12 +1,24 @@
 "use client";
+
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { FiGrid, FiFolder, FiAlertTriangle, FiClock, FiLogOut } from "react-icons/fi";
+import {
+  FiGrid,
+  FiFolder,
+  FiAlertTriangle,
+  FiClock,
+  FiLogOut,
+  FiBell,
+} from "react-icons/fi";
 import api from "@/lib/axios";
+import { useEffect, useState } from "react";
 
 export default function EmployeeLayout({ children }) {
   const pathname = usePathname();
   const router = useRouter();
+  const [notifications, setNotifications] = useState([]);
+  const [unread, setUnread] = useState(0);
+  const [showDropdown, setShowDropdown] = useState(false);
 
   const menu = [
     { name: "Dashboard", path: "/employee", icon: <FiGrid /> },
@@ -22,6 +34,24 @@ export default function EmployeeLayout({ children }) {
     } catch (err) {
       console.error("Logout failed", err);
     }
+  };
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      const res = await api.get("/api/notifications");
+      setNotifications(res.data.notifications);
+      setUnread(res.data.unreadCount);
+    };
+
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const markAsRead = async (id) => {
+    await api.patch("/api/notifications", { id });
+    setNotifications(prev => prev.map(n => n._id === id ? { ...n, read: true } : n));
+    setUnread(prev => prev - 1);
   };
 
   return (
@@ -50,7 +80,73 @@ export default function EmployeeLayout({ children }) {
           Logout
         </button>
       </aside>
-      <main className="flex-1 ml-64 p-6 md:p-8 overflow-y-auto">{children}</main>
+
+      <main className="flex-1 ml-64 p-6 md:p-8 overflow-y-auto relative">
+        {children}
+
+        <div className="fixed bottom-6 right-6 z-50">
+          <div className="relative">
+            <button
+              onClick={() => setShowDropdown(!showDropdown)}
+              className="bg-indigo-600 hover:bg-indigo-500 text-white p-4 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 transform hover:scale-110"
+            >
+              <FiBell className="w-6 h-6" />
+              {unread > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center border-2 border-white">
+                  {unread > 99 ? '99+' : unread}
+                </span>
+              )}
+            </button>
+
+            {showDropdown && (
+              <div className="absolute bottom-full right-0 mb-4 w-80 bg-gray-800 rounded-xl shadow-2xl max-h-[70vh] overflow-y-auto border border-gray-700">
+                <div className="p-4 border-b border-gray-700 text-lg font-semibold text-white">
+                  Notifications
+                </div>
+                {notifications.length === 0 ? (
+                  <p className="p-6 text-gray-400 text-center">No notifications yet</p>
+                ) : (
+                  notifications.map(n => (
+                    <div
+                      key={n._id}
+                      className={`p-4 border-b border-gray-700 ${
+                        n.read ? "bg-gray-900/50 text-gray-400" : "bg-indigo-900/30 text-white"
+                      } hover:bg-gray-700/50 transition`}
+                    >
+                      <p className="font-medium">{n.message}</p>
+                      <div className="mt-2 flex items-center gap-4 text-sm">
+                        {n.link && (
+                          <Link
+                            href={n.link}
+                            className="text-indigo-400 hover:text-indigo-300"
+                            onClick={() => !n.read && markAsRead(n._id)}
+                          >
+                            View
+                          </Link>
+                        )}
+                        {!n.read && (
+                          <button
+                            onClick={() => markAsRead(n._id)}
+                            className="text-green-400 hover:text-green-300"
+                          >
+                            Mark Read
+                          </button>
+                        )}
+                        <span className="ml-auto text-gray-500">
+                          {new Date(n.createdAt).toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </main>
     </div>
   );
 }
