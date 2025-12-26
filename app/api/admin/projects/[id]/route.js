@@ -38,7 +38,6 @@ export async function PATCH(req, context) {
     const user = await getAuthUser(req);
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    // allowRoles টেম্পোরারি রিমুভ / সিম্পল চেক
     if (user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
     }

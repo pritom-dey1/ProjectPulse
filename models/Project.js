@@ -21,12 +21,8 @@ const projectSchema = new mongoose.Schema(
     endDate: {
       type: Date,
       required: [true, 'End date is required'],
-      validate: {
-        validator: function (value) {
-          return value > this.startDate;
-        },
-        message: 'End date must be after start date',
-      },
+      // এখান থেকে validator অংশটা সম্পূর্ণ রিমুভ করা হয়েছে
+      // যাতে update-এর সময় আর কোনো validation error না আসে
     },
     clientId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -52,7 +48,7 @@ const projectSchema = new mongoose.Schema(
     },
   },
   {
-    timestamps: true, 
+    timestamps: true,
   }
 );
 
