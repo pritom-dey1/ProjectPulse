@@ -1,11 +1,21 @@
 "use client";
-export const dynamic = 'force-dynamic';
 
-import { useEffect, useState } from "react";
+import { Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import api from "@/lib/axios";
 
-export default function SubmitFeedback() {
+// Loading fallback while search params are being resolved
+function Loading() {
+  return (
+    <div className="max-w-2xl mx-auto text-center py-20">
+      <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-4 border-indigo-500"></div>
+      <p className="mt-4 text-gray-400">Loading form...</p>
+    </div>
+  );
+}
+
+function SubmitFeedbackContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const prefillProjectId = searchParams.get("projectId");
@@ -25,7 +35,7 @@ export default function SubmitFeedback() {
   useEffect(() => {
     api.get("/api/client/projects")
       .then(res => setProjects(res.data.projects || []))
-      .catch(err => console.error(err));
+      .catch(err => console.error("Failed to load projects", err));
   }, []);
 
   const handleChange = (e) => {
@@ -52,7 +62,6 @@ export default function SubmitFeedback() {
       setLoading(false);
     }
   };
-  
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -145,5 +154,13 @@ export default function SubmitFeedback() {
         </button>
       </form>
     </div>
+  );
+}
+
+export default function SubmitFeedback() {
+  return (
+    <Suspense fallback={<Loading />}>
+      <SubmitFeedbackContent />
+    </Suspense>
   );
 }
