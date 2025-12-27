@@ -1,36 +1,171 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# ProjectPulse – Client Feedback & Project Health Tracker
 
-## Getting Started
+ProjectPulse is a full-stack web application designed to help software teams monitor project health, client satisfaction, employee progress, and delivery risks in real time.
 
-First, run the development server:
+Clients provide structured weekly feedback and flag issues, employees submit progress updates and report risks, while admins get a centralized dashboard with automatic health scoring to identify problems early.
+
+---
+
+## 🚀 Live Demo
+
+🔗 https://projectpulse.vercel.app  
+_(Update if deployment URL changes)_
+
+---
+
+## 🎯 Core Features
+
+- Role-based access control (Admin / Employee / Client)
+- Secure authentication using JWT
+- Weekly employee check-ins (progress, blockers, confidence, completion %)
+- Weekly client feedback (satisfaction, communication clarity, issue flagging)
+- Risk reporting & resolution
+- Automatic Project Health Score (0–100)
+- Health status classification (On Track / At Risk / Critical)
+- Role-based real-time notification system
+- Admin, Employee, and Client dashboards
+- Activity timeline per project
+- Responsive UI with dark theme & smooth animations
+- Data visualization using charts
+
+---
+
+## 🧱 Tech Stack
+
+- Next.js (App Router + API Routes)
+- Tailwind CSS
+- MongoDB Atlas
+- JWT Authentication + Role-based Authorization
+- Recharts & Framer Motion
+
+---
+
+## 👥 User Roles
+
+### Admin
+- Create and manage projects
+- Assign clients and employees
+- Monitor project health scores
+- View all risks across projects
+- Receive system-wide notifications
+
+### Employee
+- Submit weekly check-ins
+- Report risks and blockers
+- Track assigned projects
+
+### Client
+- Submit weekly feedback
+- Flag issues
+- Track project health
+
+---
+
+## 🔐 Demo Login Credentials
+
+**Admin**  
+Email: admin@projectpulse.com  
+Password: admin123  
+
+**Employee**  
+Email: employee@projectpulse.com  
+Password: emp123  
+
+**Client**  
+Email: client@projectpulse.com  
+Password: client123  
+---
+
+## 📊 Project Health Score Logic
+
+The Project Health Score is calculated automatically whenever a project receives a new employee check-in, risk update, or timeline evaluation.
+
+The system starts with a **base score of 100** and applies deductions based on real-time project conditions to reflect the true health of the project.
+
+---
+
+### 1. Open Risk Penalty
+
+- Each unresolved risk reduces the score by **8 points**
+- Only risks with status other than `Resolved` are counted
+
+This ensures that projects with multiple unresolved risks are marked unhealthy early.
+
+---
+
+### 2. Employee Confidence Impact
+
+- Employee confidence is averaged from submitted check-ins
+- Confidence scale: **1–5**
+- Penalty formula:
+
+```
+(5 - averageConfidence) × 7
+```
+
+- If no check-ins are available, a **–20 point** penalty is applied
+
+This prevents inactive projects from appearing healthy.
+
+---
+
+### 3. Progress vs Timeline Evaluation
+
+- Project completion percentage is taken from the most recent check-in
+- Expected progress is calculated using project start and end dates
+- If actual progress is behind schedule, the gap is penalized:
+
+```
+(expectedProgress - actualCompletion) × 0.7
+```
+
+This keeps the score aligned with delivery timelines.
+
+---
+
+### 4. Overdue Project Penalty
+
+- If the current date exceeds the project end date
+- And the project is not marked as `COMPLETED`
+
+A **–25 point** penalty is applied.
+
+---
+
+### 5. Final Score Normalization
+
+- The score is clamped between **0 and 100**
+- The value is rounded to the nearest integer
+
+Health status mapping:
+- **80–100:** On Track
+- **60–79:** At Risk
+- **Below 60:** Critical
+
+The final score and status are stored on the project and updated dynamically.
+
+
+---
+
+## ⚙️ Setup Instructions
+
+Clone the repository and install dependencies:
+
+```bash
+npm install
+```
+
+Create a `.env.local` file with required environment variables.
+
+Run development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 👨‍💻 Author
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Pritom Dey
