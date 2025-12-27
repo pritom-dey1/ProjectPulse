@@ -78,7 +78,6 @@ export default function EditProject() {
       return;
     }
 
-    // ISO format-এ convert করে পাঠাও (timezone issue ফিক্স)
     const payload = {
       ...form,
       startDate: form.startDate ? new Date(form.startDate).toISOString() : undefined,
@@ -98,8 +97,16 @@ export default function EditProject() {
     }
   };
 
+
   if (loading) {
-    return <div className="text-center mt-20 text-gray-400">Loading project data...</div>;
+    return ( 
+<div className="flex justify-center items-center min-h-50">
+  <div className="relative w-16 h-16">
+    <div className="absolute inset-0 rounded-full border-4 border-blue-200"></div>
+    
+    <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-blue-600 animate-spin"></div>
+  </div>
+</div>);
   }
 
   return (

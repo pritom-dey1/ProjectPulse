@@ -4,7 +4,7 @@ import Notification from '@/models/Notification';
 import { recalculateHealth } from '@/lib/recalculateHealth';
 import { getServerSession } from '@/lib/auth';
 
-export async function PUT(request, { params }) {
+export async function PUT(request, context) {
   const session = await getServerSession(request);
   if (!session || session.user.role !== 'EMPLOYEE') {
     return Response.json({ error: 'Unauthorized' }, { status: 401 });
@@ -13,10 +13,13 @@ export async function PUT(request, { params }) {
   const body = await request.json();
   const { status, mitigation } = body;
 
+  const { params } = context;
+  const { id } = await params;
+
   await connectDB();
 
   const risk = await Risk.findOne({
-    _id: params.id,
+    _id: id,
     createdBy: session.user.userId
   });
 
@@ -28,7 +31,7 @@ export async function PUT(request, { params }) {
   if (status) updateData.status = status;
   if (mitigation) updateData.mitigation = mitigation;
 
-  const updatedRisk = await Risk.findByIdAndUpdate(params.id, updateData, { new: true });
+  const updatedRisk = await Risk.findByIdAndUpdate(id, updateData, { new: true });
 
   if (risk.projectId) {
     await recalculateHealth(risk.projectId);
@@ -38,7 +41,7 @@ export async function PUT(request, { params }) {
     const notifications = [{
       userId: session.user.userId,
       message: `Your reported risk "${risk.title}" has been resolved`,
-      link: `/employee/risks/${params.id}`,
+      link: `/employee/risks/${id}`,
       type: 'risk_resolved',
       read: false
     }];

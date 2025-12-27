@@ -8,7 +8,6 @@ export default function AdminRiskPage() {
   const [risks, setRisks] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch risks
   const fetchRisks = async () => {
     try {
       const res = await api.get("/api/risks");
@@ -24,13 +23,12 @@ export default function AdminRiskPage() {
     fetchRisks();
   }, []);
 
-  // Resolve risk
   const handleResolve = async (id) => {
     try {
       await api.patch(`/api/risks/${id}/resolve`);
       setRisks(
         risks.map((r) =>
-          r._id === id ? { ...r, status: "RESOLVED" } : r
+          r._id === id ? { ...r, status: "Resolved" } : r
         )
       );
     } catch (err) {
@@ -38,7 +36,17 @@ export default function AdminRiskPage() {
     }
   };
 
-  if (loading) return <p className="text-gray-400">Loading risks...</p>;
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-50">
+        <div className="relative w-16 h-16">
+          <div className="absolute inset-0 rounded-full border-4 border-blue-200"></div>
+          <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-blue-600 animate-spin"></div>
+        </div>
+      </div>
+    );
+  }
+
   if (!risks.length) return <p className="text-gray-400">No risks found.</p>;
 
   return (
@@ -74,28 +82,27 @@ export default function AdminRiskPage() {
                 Status:{" "}
                 <span
                   className={
-                    risk.status === "OPEN"
+                    (risk.status || "").toLowerCase() === "open"
                       ? "text-red-400 font-semibold"
                       : "text-green-400 font-semibold"
                   }
                 >
-                  {risk.status}
+                  {risk.status || "Unknown"}
                 </span>
               </p>
               <p className="text-gray-500 text-sm">Created By: {risk.createdBy}</p>
             </div>
 
-            {/* Button */}
             <button
               onClick={() => handleResolve(risk._id)}
-              disabled={risk.status === "RESOLVED"}
+              disabled={(risk.status || "").toLowerCase() === "resolved"}
               className={`mt-4 py-2 rounded-lg font-semibold shadow-lg transition ${
-                risk.status === "OPEN"
+                (risk.status || "").toLowerCase() === "open"
                   ? "bg-green-600 hover:bg-green-700 text-white"
                   : "bg-gray-600 text-gray-200 cursor-not-allowed"
               }`}
             >
-              {risk.status === "OPEN" ? "Resolve" : "Resolved"}
+              {(risk.status || "").toLowerCase() === "open" ? "Resolve" : "Resolved"}
             </button>
           </motion.div>
         ))}

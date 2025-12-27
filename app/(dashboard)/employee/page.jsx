@@ -51,8 +51,16 @@ export default function EmployeeDashboard() {
     fetchDashboardData();
   }, []);
 
-  if (loading) return <div className="text-center py-20 text-xl text-gray-300">Loading dashboard...</div>;
-  if (error) return <div className="text-red-500 text-center py-10 text-xl">{error}</div>;
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-[50vh]">
+        <div className="relative w-16 h-16">
+          <div className="absolute inset-0 rounded-full border-4 border-blue-200"></div>
+          <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-blue-600 animate-spin"></div>
+        </div>
+      </div>
+    );
+  }  if (error) return <div className="text-red-500 text-center py-10 text-xl">{error}</div>;
 
   const pieData = [
     { name: "On Track", value: stats.onTrack },

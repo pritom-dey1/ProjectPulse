@@ -31,8 +31,17 @@ export default function MissingCheckInsPage() {
     fetchData();
   }, []);
 
-  if (loading) return <p className="text-gray-400 text-center mt-10">Loading data...</p>;
 
+  if (loading) {
+    return ( 
+<div className="flex justify-center items-center min-h-50">
+  <div className="relative w-16 h-16">
+    <div className="absolute inset-0 rounded-full border-4 border-blue-200"></div>
+    
+    <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-blue-600 animate-spin"></div>
+  </div>
+</div>);
+  }
   return (
     <div className="min-h-screen text-white px-4 py-6">
       <Toaster position="top-right" />

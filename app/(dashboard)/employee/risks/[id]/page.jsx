@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import api from "@/lib/axios";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function RiskDetail() {
   const { id } = useParams();
@@ -10,31 +11,27 @@ export default function RiskDetail() {
   const [risk, setRisk] = useState(null);
   const [formData, setFormData] = useState({
     mitigation: "",
-    status: "Open"
+    status: "Open",
   });
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(false);
 
   useEffect(() => {
     const fetchRisk = async () => {
       try {
-        // যেহেতু single risk-এর জন্য আলাদা API নেই, আমরা risks লিস্ট থেকে ফিল্টার করছি
-        // (বা পরে আলাদা GET /api/employee/risks/[id] বানাতে পারো)
         const res = await api.get("/api/employee/risks");
-        const foundRisk = res.data.risks.find(r => r._id === id);
+        const foundRisk = res.data.risks.find((r) => r._id === id);
         if (foundRisk) {
           setRisk(foundRisk);
           setFormData({
             mitigation: foundRisk.mitigation || "",
-            status: foundRisk.status || "Open"
+            status: foundRisk.status || "Open",
           });
         } else {
-          setError("Risk not found");
+          toast.error("Risk not found");
         }
       } catch (err) {
-        setError("Failed to load risk details");
+        toast.error("Failed to load risk details");
         console.error(err);
       } finally {
         setLoading(false);
@@ -45,47 +42,94 @@ export default function RiskDetail() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleUpdate = async (e) => {
     e.preventDefault();
-    setUpdating(true);
-    setError(null);
-    setSuccess(false);
+
+    const promise = api.put(`/api/employee/risks/${id}`, formData);
+
+    toast.promise(promise, {
+      loading: "Updating risk...",
+      success: "Risk updated successfully! 🎉",
+      error: (err) =>
+        err?.response?.data?.message || "Failed to update risk",
+    });
 
     try {
-      await api.put(`/api/employee/risks/${id}`, formData);
-      setSuccess(true);
+      await promise;
 
-      // আপডেটেড ডেটা রিফ্রেশ
+      // Refresh risk data
       const res = await api.get("/api/employee/risks");
-      const updated = res.data.risks.find(r => r._id === id);
+      const updated = res.data.risks.find((r) => r._id === id);
       setRisk(updated);
 
-      setTimeout(() => router.push("/employee/risks"), 2000);
+      // Optional: form reset if needed
+      setFormData({
+        mitigation: updated?.mitigation || "",
+        status: updated?.status || "Open",
+      });
+
+      // Redirect after toast visibility
+      setTimeout(() => {
+        router.push("/employee/risks");
+      }, 1800);
     } catch (err) {
-      setError("Failed to update risk");
-      console.error(err);
-    } finally {
-      setUpdating(false);
+      // toast.promise নিজেই error দেখাবে
     }
   };
 
-  if (loading) return <div className="text-center py-20 text-xl">Loading risk details...</div>;
-  if (error) return <div className="text-red-500 text-center py-10">{error}</div>;
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-[50vh]">
+        <div className="relative w-16 h-16">
+          <div className="absolute inset-0 rounded-full border-4 border-blue-200"></div>
+          <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-blue-600 animate-spin"></div>
+        </div>
+      </div>
+    );
+  }
+
   if (!risk) return <div className="text-center py-10 text-gray-400">Risk not found</div>;
 
   return (
     <div className="max-w-4xl mx-auto">
+      {/* Toaster — toast render করার জন্য */}
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            borderRadius: "10px",
+            background: "#1f2937", // gray-800 এর কাছাকাছি
+            color: "#fff",
+            border: "1px solid #4b5563",
+          },
+          success: {
+            iconTheme: {
+              primary: "#10b981",
+              secondary: "#fff",
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: "#ef4444",
+              secondary: "#fff",
+            },
+          },
+          loading: {
+            iconTheme: {
+              primary: "#3b82f6",
+              secondary: "#fff",
+            },
+          },
+        }}
+      />
+
       <h1 className="text-3xl font-bold mb-8">Risk Details</h1>
 
-      {success && (
-        <div className="bg-green-900 p-6 rounded-xl mb-8 text-center">
-          <h2 className="text-2xl font-bold mb-2">Updated Successfully!</h2>
-          <p>Redirecting to risks list...</p>
-        </div>
-      )}
+      {/* success div সরানো হয়েছে — toast দেখাবে */}
 
       <div className="bg-gray-800 p-8 rounded-xl mb-10">
         <h2 className="text-2xl font-bold mb-6">{risk.title}</h2>
@@ -93,10 +137,17 @@ export default function RiskDetail() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <div>
             <p className="text-gray-300 mb-1">Severity</p>
-            <p className={`text-xl font-bold ${
-              risk.severity === "High" ? "text-red-400" :
-              risk.severity === "Medium" ? "text-yellow-400" : "text-green-400"
-            }`}>{risk.severity}</p>
+            <p
+              className={`text-xl font-bold ${
+                risk.severity === "High"
+                  ? "text-red-400"
+                  : risk.severity === "Medium"
+                  ? "text-yellow-400"
+                  : "text-green-400"
+              }`}
+            >
+              {risk.severity}
+            </p>
           </div>
 
           <div>
@@ -112,7 +163,9 @@ export default function RiskDetail() {
 
         <div className="mb-8">
           <h3 className="text-xl font-bold mb-3">Mitigation Plan</h3>
-          <p className="text-gray-300 whitespace-pre-line">{risk.mitigation || "No mitigation plan added yet."}</p>
+          <p className="text-gray-300 whitespace-pre-line">
+            {risk.mitigation || "No mitigation plan added yet."}
+          </p>
         </div>
 
         <div className="border-t border-gray-700 pt-6">

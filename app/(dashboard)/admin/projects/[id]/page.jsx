@@ -27,8 +27,17 @@ export default function ProjectDetail() {
     fetchData();
   }, [id]);
 
-  if (loading) return <div className="text-center mt-20 text-gray-400">Loading...</div>;
-  if (!project) return <div className="text-center mt-20 text-red-400">Project not found</div>;
+
+  if (loading) {
+    return ( 
+<div className="flex justify-center items-center min-h-50">
+  <div className="relative w-16 h-16">
+    <div className="absolute inset-0 rounded-full border-4 border-blue-200"></div>
+    
+    <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-blue-600 animate-spin"></div>
+  </div>
+</div>);
+  }  if (!project) return <div className="text-center mt-20 text-red-400">Project not found</div>;
 
   return (
     <div className="p-6">

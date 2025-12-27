@@ -17,7 +17,6 @@ export default function ProjectDetail() {
         const res = await api.get(`/api/employee/projects/${id}`);
         setProject(res.data.project);
 
-        // Timeline-এর জন্য চেক-ইন + রিস্ক ফেচ (আলাদা API থাকলে ব্যবহার করো, নাহলে এখানে ম্যানুয়ালি কম্বাইন করা যায়)
         const [checkinsRes, risksRes] = await Promise.all([
           api.get(`/api/employee/checkins?projectId=${id}`),
           api.get(`/api/employee/risks?projectId=${id}`)
@@ -49,8 +48,16 @@ export default function ProjectDetail() {
     fetchData();
   }, [id]);
 
-  if (loading) return <div className="text-center py-20">Loading project...</div>;
-  if (error) return <div className="text-red-500 text-center py-10">{error}</div>;
+  if (loading) {
+    return ( 
+<div className="flex justify-center items-center min-h-50">
+  <div className="relative w-16 h-16">
+    <div className="absolute inset-0 rounded-full border-4 border-blue-200"></div>
+    
+    <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-blue-600 animate-spin"></div>
+  </div>
+</div>);
+  }  if (error) return <div className="text-red-500 text-center py-10">{error}</div>;
   if (!project) return <div className="text-center py-10">Project not found</div>;
 
   return (

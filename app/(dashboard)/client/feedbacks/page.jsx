@@ -13,11 +13,20 @@ export default function MyFeedbacks() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="text-center py-20">Loading...</div>;
 
+  if (loading) {
+    return ( 
+<div className="flex justify-center items-center min-h-50">
+  <div className="relative w-16 h-16">
+    <div className="absolute inset-0 rounded-full border-4 border-blue-200"></div>
+    
+    <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-blue-600 animate-spin"></div>
+  </div>
+</div>);
+  }
   return (
     <div className="max-w-5xl mx-auto">
-      <h1 className="text-3xl font-bold mb-8">My Feedback History</h1>
+      <h1 className="text-3xl font-bold mb-8 text-center">My Feedback History</h1>
 
       {feedbacks.length === 0 ? (
         <p className="text-gray-400">No feedback submitted yet.</p>

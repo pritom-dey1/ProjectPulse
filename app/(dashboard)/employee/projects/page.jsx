@@ -15,8 +15,16 @@ export default function MyProjects() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="text-center py-20">Loading projects...</div>;
-  if (error) return <div className="text-red-500 text-center py-10">{error}</div>;
+  if (loading) {
+    return ( 
+<div className="flex justify-center items-center min-h-50">
+  <div className="relative w-16 h-16">
+    <div className="absolute inset-0 rounded-full border-4 border-blue-200"></div>
+    
+    <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-blue-600 animate-spin"></div>
+  </div>
+</div>);
+  }  if (error) return <div className="text-red-500 text-center py-10">{error}</div>;
 
   return (
     <div className="max-w-6xl mx-auto">

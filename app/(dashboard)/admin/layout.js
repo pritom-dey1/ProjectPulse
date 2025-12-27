@@ -11,31 +11,29 @@ import {
   FiPlus,
   FiUserPlus,
   FiBell,
+  FiMenu,
+  FiX,
 } from "react-icons/fi";
 import api from "@/lib/axios";
 import { useEffect, useState } from "react";
+import Image from "next/image";
+import logo from "../../../public/logo.png";
 
 export default function AdminLayout({ children }) {
   const pathname = usePathname();
   const router = useRouter();
+
   const [notifications, setNotifications] = useState([]);
   const [unread, setUnread] = useState(0);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   const menu = [
     { name: "Dashboard", path: "/admin", icon: <FiGrid /> },
     { name: "Projects", path: "/admin/projects", icon: <FiFolder /> },
-    {
-      name: "Create Project",
-      path: "/admin/projects/create",
-      icon: <FiPlus />,
-    },
+    { name: "Create Project", path: "/admin/projects/create", icon: <FiPlus /> },
     { name: "Risks", path: "/admin/risks", icon: <FiAlertTriangle /> },
-    {
-      name: "Missing Check-ins",
-      path: "/admin/missing-checkins",
-      icon: <FiClock />,
-    },
+    { name: "Missing Check-ins", path: "/admin/missing-checkins", icon: <FiClock /> },
     { name: "Create User", path: "/admin/users/create", icon: <FiUserPlus /> },
   ];
 
@@ -67,10 +65,58 @@ export default function AdminLayout({ children }) {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-950 text-white">
-      <aside className="w-64 bg-black border-r border-white/10 p-6 fixed h-screen">
-        <div className="text-2xl font-bold mb-10 text-indigo-400">
-          ProjectPulse
+    <div className="flex min-h-screen bg-gray-950 text-white flex-col">
+      {/* Mobile Header */}
+      <header className="md:hidden bg-black border-b border-white/10 p-4 fixed top-0 left-0 right-0 z-50 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Image src={logo} alt="ProjectPulse Logo" width={40} height={40} />
+          <span className="text-xl font-bold text-indigo-400">Digital Fighters</span>
+        </div>
+
+        <button
+          onClick={() => setShowMobileMenu(!showMobileMenu)}
+          className="text-white text-2xl"
+        >
+          {showMobileMenu ? <FiX /> : <FiMenu />}
+        </button>
+      </header>
+
+      {/* Mobile Menu Dropdown */}
+      {showMobileMenu && (
+        <div className="md:hidden fixed top-[68px] left-0 right-0 bg-black border-b border-white/10 z-40 max-h-[calc(100vh-68px)] overflow-y-auto">
+          <nav className="p-4 space-y-2">
+            {menu.map((item) => (
+              <Link
+                key={item.path}
+                href={item.path}
+                onClick={() => setShowMobileMenu(false)}
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition ${
+                  pathname === item.path ? "bg-indigo-600 text-white" : "hover:bg-white/10"
+                }`}
+              >
+                {item.icon}
+                {item.name}
+              </Link>
+            ))}
+            <button
+              onClick={() => {
+                logout();
+                setShowMobileMenu(false);
+              }}
+              className="flex items-center gap-3 px-4 py-3 rounded-lg transition hover:bg-white/10 w-full text-left text-red-400 hover:text-red-300"
+            >
+              <FiLogOut />
+              Logout
+            </button>
+          </nav>
+        </div>
+      )}
+
+      {/* Desktop Sidebar */}
+      <aside className="hidden md:block w-64 bg-black border-r border-white/10 p-6 fixed h-screen overflow-y-auto">
+        <div className="flex items-center gap-3 mb-10">
+          <Image src={logo} alt="ProjectPulse Logo" width={40} height={40} />
+          <span className="text-xl font-bold text-indigo-400">Digital Fighters</span>
         </div>
         <nav className="space-y-2">
           {menu.map((item) => (
@@ -78,9 +124,7 @@ export default function AdminLayout({ children }) {
               key={item.path}
               href={item.path}
               className={`flex items-center gap-3 px-4 py-3 rounded-lg transition ${
-                pathname === item.path
-                  ? "bg-indigo-600 text-white"
-                  : "hover:bg-white/10"
+                pathname === item.path ? "bg-indigo-600 text-white" : "hover:bg-white/10"
               }`}
             >
               {item.icon}
@@ -97,9 +141,11 @@ export default function AdminLayout({ children }) {
         </button>
       </aside>
 
-      <main className="flex-1 ml-64 p-8 overflow-y-auto relative">
+      {/* Main Content */}
+      <main className="flex-1 md:ml-64 pt-[68px] md:pt-0 p-6 md:p-8 overflow-y-auto relative">
         {children}
 
+        {/* Fixed Notification Bell */}
         <div className="fixed bottom-6 right-6 z-50">
           <div className="relative">
             <button

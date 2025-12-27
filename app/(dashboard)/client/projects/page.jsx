@@ -14,11 +14,20 @@ export default function MyProjects() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="text-center py-20">Loading projects...</div>;
 
+  if (loading) {
+    return ( 
+<div className="flex justify-center items-center min-h-50">
+  <div className="relative w-16 h-16">
+    <div className="absolute inset-0 rounded-full border-4 border-blue-200"></div>
+    
+    <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-blue-600 animate-spin"></div>
+  </div>
+</div>);
+  }
   return (
     <div className="max-w-6xl mx-auto">
-      <h1 className="text-3xl font-bold mb-8">My Assigned Projects</h1>
+      <h1 className="text-3xl font-bold mb-8 text-center">My Assigned Projects</h1>
 
       {projects.length === 0 ? (
         <div className="bg-gray-800 p-10 rounded-xl text-center text-gray-400">
@@ -52,7 +61,7 @@ export default function MyProjects() {
                 href={`/client/projects/${project._id}`}
                 className="bg-indigo-600 hover:bg-indigo-500 px-6 py-3 rounded-lg block text-center"
               >
-                View Details & Submit Feedback
+                View Details
               </Link>
             </div>
           ))}
