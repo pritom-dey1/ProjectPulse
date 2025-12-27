@@ -65,7 +65,9 @@ Password: emp123
 
 **Client**  
 Email: client@projectpulse.com  
-Password: client123  
+Password: client123 
+
+
 ---
 
 ## 📊 Project Health Score Logic
