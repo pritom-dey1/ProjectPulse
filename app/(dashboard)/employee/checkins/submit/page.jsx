@@ -1,10 +1,22 @@
 "use client";
-import { useEffect, useState } from "react";
+
+import { Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import api from "@/lib/axios";
 import toast, { Toaster } from "react-hot-toast";
 
-export default function SubmitCheckin() {
+// Loading fallback while search params are being resolved
+function Loading() {
+  return (
+    <div className="max-w-2xl mx-auto text-center py-20">
+      <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-4 border-indigo-500"></div>
+      <p className="mt-4 text-gray-400">Loading form...</p>
+    </div>
+  );
+}
+
+function SubmitCheckinContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const prefillProjectId = searchParams.get("projectId");
@@ -29,7 +41,6 @@ export default function SubmitCheckin() {
       });
   }, []);
 
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -48,7 +59,7 @@ export default function SubmitCheckin() {
     });
 
     try {
-      await promise; // wait for success
+      await promise;
 
       setFormData({
         projectId: prefillProjectId || "",
@@ -58,44 +69,42 @@ export default function SubmitCheckin() {
         completion: 0,
       });
 
-      // Optional: reset form completely if needed
       setTimeout(() => {
         router.push("/employee/checkins");
-      }, 1800); // toast দেখার পর redirect
+      }, 1800);
     } catch (err) {
       // toast.promise নিজেই error toast দেখাবে
-      // এখানে extra কিছু করার দরকার নেই
     }
   };
 
   return (
     <div className="max-w-2xl mx-auto">
-      {/* Toaster — এটা থাকলে সব toast দেখা যাবে */}
+      {/* Toaster */}
       <Toaster
         position="top-right"
         toastOptions={{
           duration: 4000,
           style: {
             borderRadius: "10px",
-            background: "#1f2937", // gray-800 এর কাছাকাছি
+            background: "#1f2937",
             color: "#fff",
             border: "1px solid #4b5563",
           },
           success: {
             iconTheme: {
-              primary: "#10b981", // emerald-500
+              primary: "#10b981",
               secondary: "#fff",
             },
           },
           error: {
             iconTheme: {
-              primary: "#ef4444", // red-500
+              primary: "#ef4444",
               secondary: "#fff",
             },
           },
           loading: {
             iconTheme: {
-              primary: "#3b82f6", // blue-500
+              primary: "#3b82f6",
               secondary: "#fff",
             },
           },
@@ -103,8 +112,6 @@ export default function SubmitCheckin() {
       />
 
       <h1 className="text-3xl font-bold mb-8">Submit Weekly Check-in</h1>
-
-      {/* success/error div সরিয়ে দিয়েছি — toast দেখাবে */}
 
       <form onSubmit={handleSubmit} className="bg-gray-800 p-8 rounded-xl space-y-6">
         <div>
@@ -191,5 +198,13 @@ export default function SubmitCheckin() {
         </button>
       </form>
     </div>
+  );
+}
+
+export default function SubmitCheckin() {
+  return (
+    <Suspense fallback={<Loading />}>
+      <SubmitCheckinContent />
+    </Suspense>
   );
 }
