@@ -5,14 +5,6 @@ ProjectPulse is a full-stack web application designed to help software teams mon
 Clients provide structured weekly feedback and flag issues, employees submit progress updates and report risks, while admins get a centralized dashboard with automatic health scoring to identify problems early.
 
 ---
-
-## 🚀 Live Demo
-
-🔗 https://projectpulse.vercel.app  
-_(Update if deployment URL changes)_
-
----
-
 ## 🎯 Core Features
 
 - Role-based access control (Admin / Employee / Client)
