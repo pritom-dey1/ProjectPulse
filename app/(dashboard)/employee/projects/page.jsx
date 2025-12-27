@@ -27,8 +27,8 @@ export default function MyProjects() {
   }  if (error) return <div className="text-red-500 text-center py-10">{error}</div>;
 
   return (
-    <div className="max-w-6xl mx-auto">
-      <h1 className="text-3xl font-bold mb-8">My Assigned Projects</h1>
+    <div className="max-w-6xl pt-10  mx-auto">
+      <h1 className="text-3xl font-bold mb-8 ">My Assigned Projects</h1>
 
       {projects.length === 0 ? (
         <div className="bg-gray-800 p-10 rounded-xl text-center text-gray-400">

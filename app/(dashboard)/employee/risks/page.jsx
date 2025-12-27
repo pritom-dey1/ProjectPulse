@@ -71,7 +71,7 @@ export default function MyRisks() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-[50vh]">
+      <div className="flex  justify-center items-center min-h-[50vh]">
         <div className="relative w-16 h-16">
           <div className="absolute inset-0 rounded-full border-4 border-blue-200"></div>
           <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-blue-600 animate-spin"></div>
@@ -81,7 +81,7 @@ export default function MyRisks() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto">
+    <div className="max-w-5xl pt-10 mx-auto">
       <Toaster
         position="top-right"
         toastOptions={{

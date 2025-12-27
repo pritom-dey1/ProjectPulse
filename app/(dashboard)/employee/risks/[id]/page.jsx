@@ -6,20 +6,18 @@ import { useEffect, useState } from "react";
 import api from "@/lib/axios";
 import toast, { Toaster } from "react-hot-toast";
 
-// Suspense fallback
 function LoadingFallback() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen">
-      <div className="relative w-16 h-16 mb-4">
+      <div className="relative w-16 h-16 mb-6">
         <div className="absolute inset-0 rounded-full border-4 border-blue-200"></div>
         <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-blue-600 animate-spin"></div>
       </div>
-      <p className="text-gray-400">Loading risk details...</p>
+      <p className="text-gray-400 text-lg">Loading risk details...</p>
     </div>
   );
 }
 
-// Main content component
 function RiskDetailContent() {
   const { id } = useParams();
   const router = useRouter();
@@ -33,19 +31,19 @@ function RiskDetailContent() {
   const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
-    if (!id) return;
-
     const fetchRisk = async () => {
       try {
-        // Direct fetch by ID — much better than fetching all and filtering
-        const res = await api.get(`/api/employee/risks/${id}`);
-        const fetchedRisk = res.data.risk || res.data;
-
-        setRisk(fetchedRisk);
-        setFormData({
-          mitigation: fetchedRisk.mitigation || "",
-          status: fetchedRisk.status || "Open",
-        });
+        const res = await api.get("/api/employee/risks");
+        const foundRisk = res.data.risks.find((r) => r._id === id);
+        if (foundRisk) {
+          setRisk(foundRisk);
+          setFormData({
+            mitigation: foundRisk.mitigation || "",
+            status: foundRisk.status || "Open",
+          });
+        } else {
+          toast.error("Risk not found");
+        }
       } catch (err) {
         toast.error("Failed to load risk details");
         console.error(err);
@@ -53,8 +51,7 @@ function RiskDetailContent() {
         setLoading(false);
       }
     };
-
-    fetchRisk();
+    if (id) fetchRisk();
   }, [id]);
 
   const handleChange = (e) => {
@@ -70,26 +67,26 @@ function RiskDetailContent() {
 
     toast.promise(promise, {
       loading: "Updating risk...",
-      success: "Risk updated successfully!",
+      success: "Risk updated successfully! 🎉",
       error: (err) => err?.response?.data?.message || "Failed to update risk",
     });
 
     try {
-      const res = await promise;
-      const updatedRisk = res.data.risk || res.data;
+      await promise;
 
-      setRisk(updatedRisk);
+      const res = await api.get("/api/employee/risks");
+      const updated = res.data.risks.find((r) => r._id === id);
+      setRisk(updated);
       setFormData({
-        mitigation: updatedRisk.mitigation || "",
-        status: updatedRisk.status || "Open",
+        mitigation: updated?.mitigation || "",
+        status: updated?.status || "Open",
       });
 
-      // Redirect after a short delay so toast is visible
       setTimeout(() => {
         router.push("/employee/risks");
       }, 1800);
     } catch (err) {
-      // Error already handled by toast.promise
+      // toast already handles error
     } finally {
       setUpdating(false);
     }
@@ -107,25 +104,20 @@ function RiskDetailContent() {
   }
 
   if (!risk) {
-    return (
-      <div className="text-center py-20 text-gray-400 text-xl">
-        Risk not found
-      </div>
-    );
+    return <div className="text-center py-20 text-gray-400 text-2xl">Risk not found</div>;
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="max-w-4xl pt-10 mx-auto">
       <Toaster
         position="top-right"
         toastOptions={{
           duration: 4000,
           style: {
-            borderRadius: "12px",
+            borderRadius: "10px",
             background: "#1f2937",
             color: "#fff",
             border: "1px solid #4b5563",
-            padding: "12px 16px",
           },
           success: { iconTheme: { primary: "#10b981", secondary: "#fff" } },
           error: { iconTheme: { primary: "#ef4444", secondary: "#fff" } },
@@ -133,24 +125,16 @@ function RiskDetailContent() {
         }}
       />
 
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-white">Risk Details</h1>
-        <button
-          onClick={() => router.back()}
-          className="bg-gray-700 hover:bg-gray-600 px-6 py-3 rounded-lg font-medium transition"
-        >
-          ← Back to List
-        </button>
-      </div>
+      <h1 className="text-3xl font-bold mb-8">Risk Details</h1>
 
-      <div className="bg-gray-800 p-8 rounded-2xl shadow-xl border border-gray-700">
-        <h2 className="text-2xl font-bold mb-8 text-white">{risk.title}</h2>
+      <div className="bg-gray-800 p-8 rounded-xl mb-10">
+        <h2 className="text-2xl font-bold mb-6">{risk.title}</h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-          <div className="bg-gray-700/50 p-5 rounded-lg">
-            <p className="text-gray-400 mb-2">Severity</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div>
+            <p className="text-gray-300 mb-1">Severity</p>
             <p
-              className={`text-2xl font-bold ${
+              className={`text-xl font-bold ${
                 risk.severity === "High"
                   ? "text-red-400"
                   : risk.severity === "Medium"
@@ -162,55 +146,47 @@ function RiskDetailContent() {
             </p>
           </div>
 
-          <div className="bg-gray-700/50 p-5 rounded-lg">
-            <p className="text-gray-400 mb-2">Current Status</p>
-            <p className="text-2xl font-bold text-white">{risk.status}</p>
+          <div>
+            <p className="text-gray-300 mb-1">Status</p>
+            <p className="text-xl font-bold">{risk.status}</p>
           </div>
 
-          <div className="bg-gray-700/50 p-5 rounded-lg">
-            <p className="text-gray-400 mb-2">Reported On</p>
-            <p className="text-lg text-gray-300">
-              {new Date(risk.createdAt).toLocaleString()}
-            </p>
+          <div className="col-span-2">
+            <p className="text-gray-300 mb-1">Reported On</p>
+            <p className="text-lg">{new Date(risk.createdAt).toLocaleString()}</p>
           </div>
         </div>
 
-        <div className="mb-10">
-          <h3 className="text-xl font-bold mb-4 text-white">Current Mitigation Plan</h3>
-          <div className="bg-gray-700/30 p-5 rounded-lg border border-gray-600">
-            <p className="text-gray-300 whitespace-pre-line">
-              {risk.mitigation || "No mitigation plan has been added yet."}
-            </p>
-          </div>
+        <div className="mb-8">
+          <h3 className="text-xl font-bold mb-3">Current Mitigation Plan</h3>
+          <p className="text-gray-300 whitespace-pre-line">
+            {risk.mitigation || "No mitigation plan added yet."}
+          </p>
         </div>
 
-        <div className="border-t border-gray-600 pt-8">
-          <h3 className="text-xl font-bold mb-6 text-white">Update This Risk</h3>
+        <div className="border-t border-gray-700 pt-6">
+          <h3 className="text-xl font-bold mb-4">Update Risk</h3>
 
           <form onSubmit={handleUpdate} className="space-y-6">
             <div>
-              <label className="block text-gray-300 mb-3 font-medium">
-                Mitigation Plan (Optional Update)
-              </label>
+              <label className="block text-gray-300 mb-2">Update Mitigation Plan</label>
               <textarea
                 name="mitigation"
                 value={formData.mitigation}
                 onChange={handleChange}
-                rows={6}
-                className="w-full bg-gray-700 border border-gray-600 rounded-lg p-4 text-white focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition"
-                placeholder="Describe steps to mitigate this risk..."
+                rows={5}
+                className="w-full bg-gray-700 p-4 rounded-lg border border-gray-600 focus:outline-none focus:border-indigo-500"
+                placeholder="Add or update mitigation steps..."
               />
             </div>
 
             <div>
-              <label className="block text-gray-300 mb-3 font-medium">
-                Update Status
-              </label>
+              <label className="block text-gray-300 mb-2">Change Status</label>
               <select
                 name="status"
                 value={formData.status}
                 onChange={handleChange}
-                className="w-full bg-gray-700 border border-gray-600 rounded-lg p-4 text-white focus:outline-none focus:border-indigo-500 transition"
+                className="w-full bg-gray-700 p-4 rounded-lg border border-gray-600 focus:outline-none focus:border-indigo-500"
               >
                 <option value="Open">Open</option>
                 <option value="In Progress">In Progress</option>
@@ -221,22 +197,26 @@ function RiskDetailContent() {
             <button
               type="submit"
               disabled={updating}
-              className={`w-full py-4 rounded-lg font-semibold text-lg transition-all ${
-                updating
-                  ? "bg-gray-600 cursor-not-allowed opacity-70"
-                  : "bg-indigo-600 hover:bg-indigo-500 active:scale-98"
+              className={`w-full bg-indigo-600 hover:bg-indigo-500 px-8 py-4 rounded-lg font-semibold text-lg transition ${
+                updating ? "opacity-50 cursor-not-allowed" : ""
               }`}
             >
-              {updating ? "Updating Risk..." : "Update Risk"}
+              {updating ? "Updating..." : "Update Risk"}
             </button>
           </form>
         </div>
       </div>
+
+      <button
+        onClick={() => router.back()}
+        className="bg-gray-700 hover:bg-gray-600 px-6 py-3 rounded-lg"
+      >
+        Back to Risks List
+      </button>
     </div>
   );
 }
 
-// Main exported component with Suspense
 export default function RiskDetail() {
   return (
     <Suspense fallback={<LoadingFallback />}>

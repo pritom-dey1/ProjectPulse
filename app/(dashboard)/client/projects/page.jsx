@@ -26,7 +26,7 @@ export default function MyProjects() {
 </div>);
   }
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="max-w-6xl pt-10 mx-auto">
       <h1 className="text-3xl font-bold mb-8 text-center">My Assigned Projects</h1>
 
       {projects.length === 0 ? (

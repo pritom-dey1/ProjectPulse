@@ -54,30 +54,52 @@ export default function MissingCheckInsPage() {
         ) : (
           <div className="grid gap-4">
             {flaggedFeedbacks.map((fb) => (
-              <motion.div
-                key={fb._id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-red-900/30 border border-red-600/50 rounded-xl p-5 flex flex-col md:flex-row justify-between items-start md:items-center hover:shadow-lg transition"
-              >
-                <div className="mb-3 md:mb-0">
-                  <p className="font-semibold text-red-300">{fb.projectName || "Project"}</p>
-                  <p className="text-gray-300 text-sm">Client: {fb.clientName || "Unknown"}</p>
-                  <p className="text-gray-400 text-sm">
-                    Satisfaction: {fb.satisfaction}/5 | Communication: {fb.communication}/5
-                  </p>
-                  <p className="text-gray-300 mt-2">{fb.comments || "No comments provided"}</p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Flagged on {new Date(fb.createdAt).toLocaleDateString()}
-                  </p>
-                </div>
-                <Link
-                  href={`/admin/projects/${fb.projectId}`}
-                  className="px-5 py-2 bg-red-600 hover:bg-red-500 rounded-lg font-semibold transition"
-                >
-                  View Project
-                </Link>
-              </motion.div>
+             <motion.div
+  key={fb._id}
+  initial={{ opacity: 0, y: 20 }}
+  animate={{ opacity: 1, y: 0 }}
+  className="bg-red-900/30 border border-red-600/50 rounded-xl p-5 
+             flex flex-col md:flex-row md:items-center md:justify-between 
+             gap-4 hover:shadow-lg transition"
+>
+  {/* Left Content */}
+  <div className="flex-1">
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mb-1">
+      <p className="font-semibold text-red-300">
+        {fb.projectName || "Project"}
+      </p>
+      <p className="text-sm text-gray-400">
+        Client: {fb.clientName || "Unknown"}
+      </p>
+    </div>
+
+    <p className="text-sm text-gray-400">
+      Satisfaction: {fb.satisfaction}/5 · Communication: {fb.communication}/5
+    </p>
+
+    {fb.comments && (
+      <p className="text-gray-300 mt-2 leading-relaxed">
+        {fb.comments}
+      </p>
+    )}
+
+    <p className="text-xs text-gray-500 mt-2">
+      Flagged on {new Date(fb.createdAt).toLocaleDateString()}
+    </p>
+  </div>
+
+  {/* Action Button */}
+  <Link
+    href={`/admin/projects/${fb.projectId}`}
+    className="shrink-0 whitespace-nowrap
+               px-6 py-2.5 bg-red-600 hover:bg-red-500 
+               rounded-lg font-semibold text-sm 
+               transition self-start md:self-center"
+  >
+    View Project
+  </Link>
+</motion.div>
+
             ))}
           </div>
         )}

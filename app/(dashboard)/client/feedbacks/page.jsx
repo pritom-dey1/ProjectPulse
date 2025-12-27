@@ -25,7 +25,7 @@ export default function MyFeedbacks() {
 </div>);
   }
   return (
-    <div className="max-w-5xl mx-auto">
+    <div className="max-w-5xl pt-10 mx-auto">
       <h1 className="text-3xl font-bold mb-8 text-center">My Feedback History</h1>
 
       {feedbacks.length === 0 ? (

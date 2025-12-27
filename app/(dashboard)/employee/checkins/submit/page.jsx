@@ -78,7 +78,7 @@ function SubmitCheckinContent() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-2xl pt-10 mx-auto">
       {/* Toaster */}
       <Toaster
         position="top-right"

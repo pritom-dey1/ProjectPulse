@@ -6,7 +6,6 @@ import { useEffect, useState } from "react";
 import api from "@/lib/axios";
 import Link from "next/link";
 
-// Suspense fallback - প্রথমে এটা দেখাবে (params resolve হওয়া পর্যন্ত)
 function LoadingFallback() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen">
@@ -67,7 +66,6 @@ function ProjectDetailContent() {
     fetchData();
   }, [id]);
 
-  // Inner loading (data fetching চলাকালীন)
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -88,7 +86,7 @@ function ProjectDetailContent() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto p-6">
+    <div className="max-w-5xl pt-10 mx-auto p-6">
       <h1 className="text-3xl font-bold mb-6 text-white">{project.name}</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
