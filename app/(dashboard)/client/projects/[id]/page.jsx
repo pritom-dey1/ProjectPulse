@@ -1,11 +1,25 @@
 "use client";
-import { useEffect, useState } from "react";
+
+import { Suspense } from "react";
 import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import api from "@/lib/axios";
 import Link from "next/link";
 
-export default function ProjectDetail() {
-  const { id } = useParams();
+// Loading fallback while params are being resolved
+function Loading() {
+  return (
+    <div className="max-w-5xl mx-auto text-center py-20">
+      <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-4 border-indigo-500"></div>
+      <p className="mt-4 text-gray-400">Loading project details...</p>
+    </div>
+  );
+}
+
+function ProjectDetailContent() {
+  const params = useParams();
+  const { id } = params;
+
   const [project, setProject] = useState(null);
   const [timeline, setTimeline] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -40,17 +54,18 @@ export default function ProjectDetail() {
     fetchData();
   }, [id]);
 
-
   if (loading) {
-    return ( 
-<div className="flex justify-center items-center min-h-50">
-  <div className="relative w-16 h-16">
-    <div className="absolute inset-0 rounded-full border-4 border-blue-200"></div>
-    
-    <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-blue-600 animate-spin"></div>
-  </div>
-</div>);
-  }  if (!project) return <div className="text-center py-10 text-gray-400">Project not found</div>;
+    return (
+      <div className="flex justify-center items-center min-h-50">
+        <div className="relative w-16 h-16">
+          <div className="absolute inset-0 rounded-full border-4 border-blue-200"></div>
+          <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-blue-600 animate-spin"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!project) return <div className="text-center py-10 text-gray-400">Project not found</div>;
 
   return (
     <div className="max-w-5xl mx-auto">
@@ -96,5 +111,13 @@ export default function ProjectDetail() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function ProjectDetail() {
+  return (
+    <Suspense fallback={<Loading />}>
+      <ProjectDetailContent />
+    </Suspense>
   );
 }
